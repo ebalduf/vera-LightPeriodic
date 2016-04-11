@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<implementation>
+    <files>L_LightPeriodic.lua,L_LightPeriodic_schedule.lua,L_LightPeriodic_zones.lua</files>
+    <startup>lpStartup</startup>
+</implementation>

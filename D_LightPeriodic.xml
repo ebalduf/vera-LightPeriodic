@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+    <specVersion>
+        <major>1</major>
+        <minor>0</minor>
+    </specVersion>
+    <device>
+     <deviceType>urn:madskier-com:device:LightPeriodic:1</deviceType>
+     <friendlyName>Light Periodic Timer</friendlyName>
+     <manufacturer>madskier</manufacturer>
+     <manufacturerURL>http://madskier.com</manufacturerURL>
+     <modelDescription>LightPeriodic</modelDescription>
+     <modelName>LightPeriodic</modelName>
+     <modelNumber>1.0</modelNumber>
+    <implementationList>
+        <implementationFile>I_LightPeriodic.xml</implementationFile>
+    </implementationList>
+</device>
+</root>
