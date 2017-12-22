@@ -1,7 +1,7 @@
 lpMyZones = [[
 {
     "gardenLight": {
-        "17": {
+        "11": {
             "type":"switch"
         }
     }

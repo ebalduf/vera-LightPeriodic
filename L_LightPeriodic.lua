@@ -12,24 +12,41 @@ function lpSetupPeriod()
 
     lpGetSchedule()
 
+    if (luup.is_ready(25) == false) then
+        -- the weather app is not ready yet, reschedule us for 2 minutes
+        luup.log("Weather not up yet ... Delay")
+        luup.call_timer("lpSetupPeriod", 1, "2m", "", "")
+        return
+    end
+
+    -- local temp, tstamp = luup.variable_get("urn:demo-micasaverde-com:device:weather:1", "FeelsLike", 25)
+    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", 26)
+    luup.log("CurrentTemp: " .. temp)
+
     -- loop schedule
     for k,sched in pairs(lpSchedule) do
-
-        -- turn on now.
-        lpTurnOn(sched['zone'])
-        luup.log("lpTurnOn "..sched['zone'].." at "..os.date("%Y-%m-%d %H:%M:%S",os.time()),50)
-
-        -- set off timer
-        luup.call_timer("lpTurnOff", 1, sched['length'].."m", "", sched['zone'])
-        luup.log("lpTurnOff "..sched['zone'].." scheduled for "..sched['length'],50)
 
         -- find the next run time
         splitPeriod = lpSplit(sched['period'], "[:]+")
         periodMinutes = ( splitPeriod[1] * 60 ) + splitPeriod[2]
 
         -- stop back at next period
-        luup.call_timer("lpSetupPeriod", 1, periodMinutes.."m", "", "")
         luup.log("lpNextRun "..sched['zone'].." scheduled for "..periodMinutes.."m",50)
+        luup.call_timer("lpSetupPeriod", 1, periodMinutes.."m", "", "")
+
+        if tonumber(temp) < 32 then
+
+            -- turn on ]now.
+            lpTurnOn(sched['zone'])
+            luup.log("lpTurnOn "..sched['zone'].." at "..os.date("%Y-%m-%d %H:%M:%S",os.time()),50)
+
+            length = sched['length'] + ( 32 - temp )
+
+            -- set off timer
+            luup.call_timer("lpTurnOff", 1, math.floor(length+0.5).."m", "", sched['zone'])
+            luup.log("lpTurnOff "..sched['zone'].." scheduled for "..tostring(math.floor(length+0.5)),50)
+
+       end
 
     end
 

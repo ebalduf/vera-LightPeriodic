@@ -7,7 +7,7 @@ Turns on a light for a fixed amount of time within a period.
 
 ### Zones file
 
-Copy `L_LightPeriodic_zones.sample.lua` to `L_LightPeriodic.lua`.
+Copy `L_LightPeriodic_zones.sample.lua` to `L_LightPeriodic_zones.lua`.
 
 Adjust the file as required for your network. The numeric keys within each zone
 are the Device IDs that you want to control. Supported `types` are "dimmer" and
@@ -16,7 +16,7 @@ are the Device IDs that you want to control. Supported `types` are "dimmer" and
 ### Schedule file
 
 Copy `L_LightPeriodic.sample.lua` to
-`L_LightPeriodic.lua`.
+`L_LightPeriodic_schedule.lua`.
 
 Adjust the file as required for your network. Each `zone` must relate to a key
 in your `L_LightPeriodic.json` file. Then period and length times. These times
