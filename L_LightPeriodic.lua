@@ -1,6 +1,7 @@
 json = require('json')
 
 package.path = '../?.lua;'..package.path
+DEVICE_ID = 38
 
 local lpZoneData
 local lpSchedule
@@ -12,15 +13,14 @@ function lpSetupPeriod()
 
     lpGetSchedule()
 
-    if (luup.is_ready(25) == false) then
+    if (luup.is_ready(DEVICE_ID) == false) then
         -- the weather app is not ready yet, reschedule us for 2 minutes
         luup.log("Weather not up yet ... Delay")
         luup.call_timer("lpSetupPeriod", 1, "2m", "", "")
         return
     end
 
-    -- local temp, tstamp = luup.variable_get("urn:demo-micasaverde-com:device:weather:1", "FeelsLike", 25)
-    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", 26)
+    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", DEVICE_ID)
     luup.log("CurrentTemp: " .. temp)
 
     -- loop schedule
