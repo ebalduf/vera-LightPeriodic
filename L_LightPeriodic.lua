@@ -1,7 +1,8 @@
 json = require('json')
 
 package.path = '../?.lua;'..package.path
-DEVICE_ID = 38
+TEMP_DEVICE_ID = 45
+THRESHOLD = 34
 
 local lpZoneData
 local lpSchedule
@@ -13,14 +14,14 @@ function lpSetupPeriod()
 
     lpGetSchedule()
 
-    if (luup.is_ready(DEVICE_ID) == false) then
+    if (luup.is_ready(TEMP_DEVICE_ID) == false) then
         -- the weather app is not ready yet, reschedule us for 2 minutes
         luup.log("Weather not up yet ... Delay")
         luup.call_timer("lpSetupPeriod", 1, "2m", "", "")
         return
     end
 
-    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", DEVICE_ID)
+    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", TEMP_DEVICE_ID)
     luup.log("CurrentTemp: " .. temp)
 
     -- loop schedule
@@ -34,13 +35,13 @@ function lpSetupPeriod()
         luup.log("lpNextRun "..sched['zone'].." scheduled for "..periodMinutes.."m",50)
         luup.call_timer("lpSetupPeriod", 1, periodMinutes.."m", "", "")
 
-        if tonumber(temp) < 32 then
+        if tonumber(temp) < THRESHOLD then
 
             -- turn on ]now.
             lpTurnOn(sched['zone'])
             luup.log("lpTurnOn "..sched['zone'].." at "..os.date("%Y-%m-%d %H:%M:%S",os.time()),50)
 
-            length = sched['length'] + ( 32 - temp )
+            length = sched['length'] + ( THRESHOLD - temp )
 
             -- set off timer
             luup.call_timer("lpTurnOff", 1, math.floor(length+0.5).."m", "", sched['zone'])
@@ -57,7 +58,7 @@ end
   ]]
 function lpTurnOn(zone)
 
-    luup.log("lpTurnOn "..zone,50)
+    -- luup.log("lpTurnOn "..zone,50)
 
     lpZoneData = lpGetZones()
 
@@ -79,7 +80,7 @@ end
   ]]
 function lpTurnOff(zone)
 
-    luup.log("lpTurnOff "..zone,50)
+    -- luup.log("lpTurnOff "..zone,50)
 
     lpGetZones()
 
