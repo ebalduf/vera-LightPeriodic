@@ -1,0 +1,130 @@
+{
+  "default_icon": "timer.png",
+  "state_icons": [
+    {
+      "img": "Clock.png",
+      "conditions": [
+        {
+          "service": "urn:madskier-com:serviceId:LightPeriodic1",
+          "variable": "Enabled",
+          "operator": "==",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "img": "Sleeping-Clock",
+      "conditions": [
+        {
+          "service": "urn:madskier-com:serviceId:LightPeriodic1",
+          "variable": "Enabled",
+          "operator": "==",
+          "value": =
+          0
+        }
+      ]
+    }
+  ],
+  "x": "2",
+  "y": "4",
+  "iconText": "1",
+  "inScene": "1",
+  "ToggleButton": 1,
+  "Tabs": [
+    {
+      "Label": {
+        "lang_tag": "ui7_tabname_control",
+        "text": "Control"
+      },
+      "Position": "0",
+      "TabType": "flash",
+      "top_navigation_tab": 1,
+      "ControlGroup": [
+        {
+          "id": "1",
+          "isSingle": "1",
+          "scenegroup": "1"
+        },
+        {
+          "id": "2",
+          "isSingle": "1",
+          "scenegroup": "1"
+        },
+        {
+          "id": "3",
+          "isSingle": "1",
+          "scenegroup": "1"
+        }
+      ],
+      "SceneGroup": [
+        {
+          "id": "1",
+          "top": "0.5",
+          "left": "0",
+          "x": "2",
+          "y": "2.5"
+        }
+      ],
+      "Control": [
+        {
+          "ControlGroup": "1",
+          "ControlType": "multi_state_button",
+          "top": "0",
+          "left": "1",
+          "states": [
+            {
+              "Label": {
+                "lang_tag": "ui7_cmd_on",
+                "text": "Enable"
+              },
+              "ControlGroup": "1",
+              "Display": {
+                "Service": "urn:madskier-com:serviceId:LightPeriodic1",
+                "Variable": "Enabled",
+                "Value": "1"
+              },
+              "Command": {
+                "Service": "urn:madskier-com:serviceId:LightPeriodic1",
+                "Action": "SetEnabled",
+                "Parameters": [
+                  {
+                    "Name": "newEnabledValue",
+                    "Value": "1"
+                  }
+                ]
+              },
+              "ControlCode": "Enable"
+            },
+            {
+              "Label": {
+                "lang_tag": "ui7_cmd_off",
+                "text": "Disabled"
+              },
+              "ControlGroup": "1",
+              "Display": {
+                "Service": "urn:madskier-com:serviceId:LightPeriodic1",
+                "Variable": "Enabled",
+                "Value": "0"
+              },
+              "Command": {
+                "Service": "urn:madskier-com:serviceId:LightPeriodic1",
+                "Action": "SetEnabled",
+                "Parameters": [
+                  {
+                    "Name": "newEnabledValue",
+                    "Value": "0"
+                  }
+                ]
+              },
+              "ControlCode": "Disable"
+            }
+          ]
+        }
+      ],
+      "Conditions": []
+    }
+  ],
+  "sceneList": {},
+  "eventList2": [],
+  "device_type": "urn:madskier-com:device:LightPeriodic:1"
+}

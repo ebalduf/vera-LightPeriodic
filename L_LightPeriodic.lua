@@ -1,144 +1,63 @@
-json = require('json')
-
-package.path = '../?.lua;'..package.path
-
-local lpZoneData
-local lpSchedule
+-- Filename: L_LightPeriodic.lua
 
 --[[
   Parses the schedule and sets up timers
   ]]
-function lpSetupPeriod()
+function lpSetupPeriod(lul_device)
 
-    lpGetSchedule()
-
-    -- loop schedule
-    for k,sched in pairs(lpSchedule) do
-
-        -- turn on now.
-        lpTurnOn(sched['zone'])
-        luup.log("lpTurnOn "..sched['zone'].." at "..os.date("%Y-%m-%d %H:%M:%S",os.time()),50)
-
-        -- set off timer
-        luup.call_timer("lpTurnOff", 1, sched['length'].."m", "", sched['zone'])
-        luup.log("lpTurnOff "..sched['zone'].." scheduled for "..sched['length'],50)
-
-        -- find the next run time
-        splitPeriod = lpSplit(sched['period'], "[:]+")
-        periodMinutes = ( splitPeriod[1] * 60 ) + splitPeriod[2]
-
-        -- stop back at next period
-        luup.call_timer("lpSetupPeriod", 1, periodMinutes.."m", "", "")
-        luup.log("lpNextRun "..sched['zone'].." scheduled for "..periodMinutes.."m",50)
-
+    local temperature_device, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "TemperatureDeviceID", lul_device)
+    if ( luup.is_ready(tonumber(temperature_device)) == false ) then
+        -- the weather app is not ready yet, reschedule for 2 minutes
+        luup.log("Weather not up yet ... Delay")
+        luup.call_timer("lpSetupPeriod", 1, "2m", "", lul_device)
+        return
     end
 
-end
+    local temp, tstamp = luup.variable_get("urn:upnp-org:serviceId:TemperatureSensor1", "CurrentTemperature", tonumber(temperature_device))
+    luup.log("Current Temperature: "..temp)
+    local threshold, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "ThresholdTemperature", tonumber(lul_device))
 
---[[
-  Turn on a zone
-  ]]
-function lpTurnOn(zone)
+    if tonumber(temp) < tonumber(threshold) then
+        local enabled, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", lul_device)
+        if (enabled == 1) then
+            local target_device, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "TargetDeviceNum", lul_device)
+            local base_length, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "BaseLength", lul_device)
 
-    luup.log("lpTurnOn "..zone,50)
-
-    lpZoneData = lpGetZones()
-
-    for device,settings in pairs(lpZoneData[zone]) do
-
-        luup.log("lpTurnOn device "..device,50)
-
-        if settings["type"] == "dimmer" then
-            lpSetDimmer( device,settings["percentage"] )
-        else
-            lpSetSwitch(device,1)
+            length = base_length + (threshold - temp)
+            -- if enabled, lpTurnOn
+            lpTurnOn(tonumber(target_device))
+            -- schedule lpTurnOff
+            luup.call_timer("lpTurnOff", 1, math.floor(length+0.5).."m", "", tonumber(target_device))
         end
-
     end
+    -- reschedule lpSetupPeriod
+    local period, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "Period", lul_device)
+    luup.call_timer("lpSetupPeriod", 1, period.."m", "", lul_device)
 end
 
 --[[
-  Turn off a zone
+  Turn on a switch
   ]]
-function lpTurnOff(zone)
+function lpTurnOn(deviceId)
+    luup.log("lpTurnOn switch: "..deviceId, 50)
+    lul_arguments = {}
+    lul_arguments["newTargetValue"] = 1
+    luup.call_action("urn:upnp-org:serviceId:SwitchPower1", "SetTarget", lul_arguments, tonumber(deviceId))
+end
 
-    luup.log("lpTurnOff "..zone,50)
-
+--[[
+  Turn off a switch
+  ]]
+function lpTurnOff(deviceId)
+    luup.log("lpTurnOff switch: "..deviceId, 50)
     lpGetZones()
-
-    for device,settings in pairs(lpZoneData[zone]) do
-        lpSetSwitch(device,0)
-    end
-end
-
-function lpGetZones()
-    lpZoneData = json.decode(lpMyZones)
-    return lpZoneData
-end
-
---[[
-  String split function. From the Lua wiki
-  ]]
-function lpSplit(str, pat)
-   local t = {}  -- NOTE: use {n = 0} in Lua-5.0
-   local fpat = "(.-)" .. pat
-   local last_end = 1
-   local s, e, cap = str:find(fpat, 1)
-   while s do
-      if s ~= 1 or cap ~= "" then
-     table.insert(t,cap)
-      end
-      last_end = e+1
-      s, e, cap = str:find(fpat, last_end)
-   end
-   if last_end <= #str then
-      cap = str:sub(last_end)
-      table.insert(t, cap)
-   end
-   return t
-end
-
---[[
-  Schedule Getter
-  ]]
-function lpGetSchedule()
-    if(lpSchedule == nil) then
-        lpSetSchedule(lpMySchedule)
-    end
-
-    return lpSchedule
-end
-
-function lpSetSchedule(data)
-
-    lpSchedule = json.decode(data)
-end
-
-
---[[
-  Set a dimmer value
-  ]]
-function lpSetDimmer( deviceId,value )
-
-    luup.log("lpSetDimmer about to start HandleActionRequest for "..deviceId.." to "..value,50)
-
     lul_arguments = {}
-    lul_arguments["newLoadlevelTarget"] = tonumber(value)
-    luup.call_action("urn:upnp-org:serviceId:Dimming1", "SetLoadLevelTarget", lul_arguments,tonumber(deviceId))
-
-
+    lul_arguments["newTargetValue"] = 0
+    luup.call_action("urn:upnp-org:serviceId:SwitchPower1", "SetTarget", lul_arguments, tonumber(deviceId))
 end
 
---[[
-  Control a basic on/off switch
-  ]]
-function lpSetSwitch( deviceId,onoff )
-
-    luup.log("lpSetSwitch "..deviceId.." to "..onoff,50)
-
-    lul_arguments = {}
-    lul_arguments["newTargetValue"] = tonumber(onoff)
-    luup.call_action("urn:upnp-org:serviceId:SwitchPower1", "SetTarget", lul_arguments,tonumber(deviceId))
+local function isempty(s)
+  return s == nil or s == ''
 end
 
 --[[
@@ -147,11 +66,50 @@ end
 ]]
 function lpStartup(lul_device)
 
+    luup.log("LightPeriodic, Startup Routine Called.")
     luup.task("Running Lua Startup", 1, "LightPeriodic", -1)
+    -- check that all our variables are at least present
+    local enabled, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", lul_device)
+    if isempty(enabled) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", 0, lul_device)
+        enabled = 0
+    end
 
-    luup.log("lpStartup",1)
+    local period, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "Period", lul_device)
+    if isempty(period) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "Period", 60, lul_device)
+    end
+    local baseLength, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "BaseLength", lul_device)
+    if isempty(baseLength) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "BaseLength", 5, lul_device)
+    end
+    local tgtDevId, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "TargetDeviceNum", lul_device)
+    if isempty(tgtDevId) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "TargetDeviceNum", 0, lul_device)
+    end
+    local thresholdTemp, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "ThresholdTemperature", lul_device)
+    if isempty(thresholdTemp) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "ThresholdTemperature", 32, lul_device)
+    end
+    local tempDevId, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "TemperatureDeviceID", lul_device)
+    if isempty(tempDevId) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "TemperatureDeviceID", 0, lul_device)
+    end
 
-    -- Set the schedule
-    lpSetupPeriod()
+    if( tonumber(enabled) == 1 ) then
+        luup.log("LightPeriodic enabled! Starting up.",1)
+        lpSetupPeriod(lul_device)
+    end
+end
 
+function toggle_enabled(self, lul_device)
+    luup.log("Toggle Enabled: ")
+    local enabled, tstamp = luup.variable_get("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", lul_device)
+    if ( tonumber(enabled) == 1 ) then
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", 0, lul_device)
+    else
+        luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "Enabled", 1, lul_device)
+        lpSetupPeriod(lul_device)
+    end
+    return 4, 0
 end

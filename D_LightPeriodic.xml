@@ -5,15 +5,27 @@
         <minor>0</minor>
     </specVersion>
     <device>
-     <deviceType>urn:madskier-com:device:LightPeriodic:1</deviceType>
-     <friendlyName>Light Periodic Timer</friendlyName>
-     <manufacturer>madskier</manufacturer>
-     <manufacturerURL>http://madskier.com</manufacturerURL>
-     <modelDescription>LightPeriodic</modelDescription>
-     <modelName>LightPeriodic</modelName>
-     <modelNumber>1.0</modelNumber>
-    <implementationList>
-        <implementationFile>I_LightPeriodic.xml</implementationFile>
-    </implementationList>
-</device>
+        <deviceType>urn:madskier-com:device:LightPeriodic:1</deviceType>
+        <friendlyName>Light Periodic Timer</friendlyName>
+        <manufacturer>madskier</manufacturer>
+        <manufacturerURL>http://madskier.com</manufacturerURL>
+        <modelDescription>LightPeriodic</modelDescription>
+        <modelName>LightPeriodic</modelName>
+        <modelNumber>1.0</modelNumber>
+        <serviceList>
+            <service>
+                <serviceType>urn:schemas-micasaverde-com:service:HaDevice:1</serviceType>
+                <serviceId>urn:micasaverde-com:serviceId:HaDevice1</serviceId>
+                <SCPDURL>S_HaDevice1.xml</SCPDURL>
+            </service>
+            <service>
+                <serviceType>urn:madskier-com:service:LightPeriodic:1</serviceType>
+                <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+                <SCPDURL>S_LightPeriodic.xml</SCPDURL>
+            </service>
+        </serviceList>
+        <implementationList>
+            <implementationFile>I_LightPeriodic.xml</implementationFile>
+        </implementationList>
+    </device>
 </root>

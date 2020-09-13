@@ -1,5 +1,50 @@
 <?xml version="1.0"?>
 <implementation>
-    <files>L_LightPeriodic.lua,L_LightPeriodic_schedule.lua,L_LightPeriodic_zones.lua</files>
+    <files>L_LightPeriodic.lua</files>
     <startup>lpStartup</startup>
+    <functions></functions>
+    <actionList>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>toggleEnabled</name>
+            <job>
+                toggle_enabled(lul_device)
+            </job>
+        </action>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>SetTemperatureDevice</name>
+            <run>
+                luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "TemperatureDeviceID", tonumber(lul_settings.DevId), lul_device)
+            </run>
+        </action>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>SetTargetDevice</name>
+            <run>
+                luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "TargetDeviceNum", tonumber(lul_settings.DevId), lul_device)
+            </run>
+        </action>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>SetPeriod</name>
+            <run>
+                luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "Period", tonumber(lul_settings.Period), lul_device)
+            </run>
+        </action>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>SetBaseLength</name>
+            <run>
+                luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "BaseLength", tonumber(lul_settings.Time), lul_device)
+            </run>
+        </action>
+        <action>
+            <serviceId>urn:madskier-com:serviceId:LightPeriodic1</serviceId>
+            <name>SetThresholdTemp</name>
+            <run>
+                luup.variable_set("urn:madskier-com:serviceId:LightPeriodic1", "ThresholdTemperature", tonumber(lul_settings.Temp), lul_device)
+            </run>
+        </action>
+    </actionList>
 </implementation>
